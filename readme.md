@@ -7,20 +7,21 @@ This repository contains config files and detail descriptions of circos plots cr
 To customize plots, please download config files from FUMA web application and refer wiki pages.
 
 ## Repository structure
->FUMA-circos-plot  
->>	|-- configs : default config files used on FUMA  
->>	|-- example : example directory including text files, configs and plots for risk loci of BMI GWAS (2015) on chromosome 16  
->>	|-- scripts : script to prepare text input files and configs
-
+```
+FUMA-circos-plot  
+    |-- configs : default config files used on FUMA  
+    |-- example : example directory including text files, configs and plots for risk loci of BMI GWAS (2015) on chromosome 16  
+    |-- scripts : script to prepare text input files and configs
+```
 ## Wiki menu
-* Home
-* Getting started
-* Understand config files
-* Prepare input text files
-* Customizing example
-	* Display only specific genes
+* [Home](https://github.com/Kyoko-wtnb/FUMA-circos-plot/wiki)
+* [Getting started](https://github.com/Kyoko-wtnb/FUMA-circos-plot/wiki/Getting-started)
+* [Prepare input files](https://github.com/Kyoko-wtnb/FUMA-circos-plot/wiki/Preparing-input-files)
+* [Customizing plot](https://github.com/Kyoko-wtnb/FUMA-circos-plot/wiki/Customizing-plot)
+	* Modify gene labels
 	* Change colors
 	* Plot a specific locus
+	* Plot multiple chromosomes
 	* Plot more SNPs or links
 
 ## Example plot

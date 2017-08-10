@@ -9,10 +9,20 @@ import math
 import argparse
 import time
 
-##### Return index of a1 which exists in a2 #####
+##### Return index of a1 which exist in a2 #####
 def ArrayIn(a1, a2):
 	results = np.where(np.in1d(a1, a2))[0]
 	return results
+
+##### Return index of a1 which do not exist in a2 #####
+def ArrayNotIn(a1, a2):
+    temp = np.where(np.in1d(a1, a2))[0]
+    a1 = range(0, len(a1))
+    results = []
+    for i in a1:
+        if i not in temp:
+            results.append(i)
+    return results
 
 ##### return unique element in a list #####
 def unique(a):
@@ -22,7 +32,7 @@ def unique(a):
 
 ##### get arguments #####
 parser = argparse.ArgumentParser()
-parser.add_argument('--configdir', default=None, type=str, help="Directory of base.conf file.")
+parser.add_argument('--configdir', default=None, type=str, help="(Required) Directory of base.conf file.")
 parser.add_argument('--indir', default=None, type=str, help="Directory of text files downloded from FUMA. Use 'configdir' if not provided.")
 parser.add_argument('--outdir', default=None, type=str, help="Directory of output files. Use 'configdir' if not provided.")
 parser.add_argument('--sumstats', default=None, type=str, help="Path to GWAS summary statistics file. If not provided, only SNPs in the text file downloaded from FUMA will be used.")
@@ -30,10 +40,10 @@ parser.add_argument('--delim', default='\t', type=str, help="Delimiter of GWAS s
 parser.add_argument('--chrcol', default=None, type=str, help="Header name of chromosome column in the sumstats file. Mandatory if --sumstats argument is given.")
 parser.add_argument('--poscol', default=None, type=str, help="Header name of SNP position column in the sumstats file. Mandatory if --sumstats argument is given.")
 parser.add_argument('--pcol', default=None, type=str, help="Header name of P-value column in the sumstats file. Mandatory if --sumstats argument is given.")
-parser.add_argument('--chrom', default=None, type=str, help="Chromosome index to create circos plot. All chromosomes with at least one risk locus will be processed by default. Multiple chromsomes can be specified sepated by comma (e.g. --chrom 1,3,6).")
-parser.add_argument('--max-N-snps', default=150000, type=int, help="The maximum number of SNPs per plot. Default is 150000.")
+parser.add_argument('--chrom', default=None, type=str, help="Chromosome index to create circos plot. All chromosomes with at least one risk locus will be processed by default. Multiple chromosomes can be specified separated by comma (e.g. --chrom 1,3,6).")
+parser.add_argument('--max-N-snps', default=50000, type=int, help="The maximum number of SNPs per plot. Default is 50000.")
 parser.add_argument('--max-snp-p', default=0.05, type=float, help="The maximum P-value of SNPs to plot. Default is 0.05.")
-parser.add_argument('--max-N-links', default=100000, type=int, help="The maximum number of links (eQTLs/chromatin interactions) to plot. Default is 100000.")
+parser.add_argument('--max-N-links', default=10000, type=int, help="The maximum number of links (eQTLs/chromatin interactions) to plot. Default is 10000.")
 
 ##### create condig files #####
 def createConfig(args, c, loci, ci, snps, allsnps, genes):
@@ -85,6 +95,7 @@ def createConfig(args, c, loci, ci, snps, allsnps, genes):
 				tmp_snps = tmp
 			else:
 				tmp_snps = np.r_[tmp_snps, tmp]
+	tmp_snps = tmp_snps[ArrayNotIn(tmp_snps[:,1].astype(int), snps[:,1].astype(int))]
 	if len(tmp_snps)>0:
 		tmp_snps = np.c_[tmp_snps, [0]*len(tmp_snps)]
 		snps = np.r_[snps, tmp_snps]
