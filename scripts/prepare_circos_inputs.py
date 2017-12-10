@@ -198,6 +198,8 @@ def main(args):
 	if os.path.isfile(args.indir+"/ci.txt"):
 		ci = pd.read_table(args.indir+"/ci.txt", delim_whitespace=True)
 		ci = np.array(ci)
+		if len(ci[0])>=10:
+			ci = ci[ci[:,10]==1,]
 		ci = ci[ci[:,0].argsort()]
 		ci = ci[ci[:,7]=="intra"]
 		chr1 = [int(x.split(":")[0]) for x in ci[:,1]]
@@ -206,7 +208,9 @@ def main(args):
 		pos1max = [int(x.split(":")[1].split("-")[1]) for x in ci[:,1]]
 		pos2min = [int(x.split(":")[1].split("-")[0]) for x in ci[:,2]]
 		pos2max = [int(x.split(":")[1].split("-")[1]) for x in ci[:,2]]
-		ci = np.c_[ci[:,0], chr1, pos1min, pos1max, chr2, pos2min, pos2max, ci[:,3:7]]
+		ci = np.c_[ci[:,0], chr1, pos1min, pos1max, chr2, pos2min, pos2max]
+		ci = np.array(ci, dtype=str)
+		ci = np.vstack({tuple(row) for row in ci})
 		### take top 100000 links per chromosome
 		ci_chrom = unique(ci[:,1])
 		ci_tmp = []
@@ -230,16 +234,23 @@ def main(args):
 	if os.path.isfile(args.indir+"/eqtl.txt"):
 		eqtl = pd.read_table(args.indir+"/eqtl.txt", delim_whitespace=True)
 		eqtl = np.array(eqtl)
+		eqtl = eqtl[eqtl[:,13]==1]
 		eqtl = eqtl[ArrayIn(eqtl[:,3], genes[:,0])]
+		eqtl = eqtl[:,[3,5,10,11]]
+
 		### take top 100000 links per chromosome
 		if len(eqtl)>0:
 			chrcol = np.array([int(x.split(":")[0]) for x in eqtl[:,0]])
 			e_chrom = unique(chrcol)
 			eqtl_tmp = []
 			for c in e_chrom:
-				tmp = eqtl[np.where(chrcol==c)]
+				e_chrom = unique(eqtl[:,2])
+				eqtl_tmp = []
+				for c in e_chrom:
+					tmp = eqtl[eqtl[:,2]==c]
+					tmp = tmp[tmp[:,1].astype(float).argsort()][:,[0,2,3]]
+					tmp = np.vstack({tuple(row) for row in tmp})
 				if len(tmp)>args.max_N_links:
-					tmp = tmp[tmp[:,5].astype(float).argsort()]
 					tmp = tmp[0:args.max_N_links]
 				if len(eqtl_tmp)==0:
 					eqtl_tmp = tmp
@@ -305,7 +316,7 @@ def main(args):
 		tmp_genes = genes[genes[:,2]==c]
 		tmp_genes = tmp_genes[:,[2,3,4,1,geneshead.index("GenomicLocus")]]
 		tmp_genes[:,4] = [int(x.split(":")[-1]) for x in tmp_genes[:,4].astype(str)]
-		[tmp_snps, tmp_regions] = createConfig(args, c, loci[loci[:,2].astype(int)==c], ci[np.where((ci[:,1]==c) & (ci[:,4]==c))], snps[snps[:,0]==c], allsnps, tmp_genes)
+		[tmp_snps, tmp_regions] = createConfig(args, c, loci[loci[:,2].astype(int)==c], ci[np.where((ci[:,1]==str(c)) & (ci[:,4]==str(c)))], snps[snps[:,0]==c], allsnps, tmp_genes)
 		if len(snpsout)==0:
 			snpsout = tmp_snps
 			regions = tmp_regions
@@ -333,11 +344,13 @@ def main(args):
 
 	##### eqtl write out #####
 	if len(eqtl) >0 :
-		c = ["hs"+x.split(":")[0] for x in eqtl[:,0]]
-		pos = [int(x.split(":")[1]) for x in eqtl[:,0]]
-		gstart = list(map(lambda x: genes[genes[:,0]==x,3], eqtl[:,3]))
-		gend = list(map(lambda x: genes[genes[:,0]==x,4], eqtl[:,3]))
+		c = ["hs"+str(x) for x in eqtl[:,1]]
+		pos = eqtl[:,2].astype(int)
+		gstart = list(map(lambda x: genes[genes[:,0]==x,3], eqtl[:,0]))
+		gend = list(map(lambda x: genes[genes[:,0]==x,4], eqtl[:,0]))
 		eqtl = np.c_[c, pos, [x+1 for x in pos], c, gstart, gend]
+		eqtl[eqtl[:,0]=="hs23", 0] = "hsX"
+		eqtl[eqtl[:,3]=="hs23", 3] = "hsX"
 	with open(args.outdir+"/eqtl_links.txt", "w") as o:
 		np.savetxt(o, eqtl, delimiter=" ", fmt="%s")
 
